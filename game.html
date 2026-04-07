@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>宝石守护者 - TikTok小游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            touch-action: none;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, #0b1120, #03060f);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            padding: 16px;
+        }
+
+        .game-wrapper {
+            max-width: 550px;
+            width: 100%;
+            background: rgba(15, 25, 45, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 56px;
+            padding: 18px 16px 20px;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 200, 100, 0.3);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background: #000000aa;
+            border-radius: 80px;
+            padding: 10px 20px;
+            margin-bottom: 16px;
+            color: #FFE4A0;
+            font-weight: bold;
+            backdrop-filter: blur(4px);
+        }
+        .stat-item {
+            background: #00000066;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+        }
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-left: 8px;
+            color: #FFD966;
+        }
+        .login-status {
+            background: #1e2a3a;
+            padding: 6px 12px;
+            border-radius: 32px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: #13202e;
+            border-radius: 32px;
+            box-shadow: 0 12px 24px black;
+            width: 100%;
+            height: auto;
+            cursor: none;
+            border: 2px solid #FFD966;
+        }
+
+        .task-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 18px 0 12px;
+        }
+        .tiktok-btn {
+            background: linear-gradient(135deg, #2c3e66, #1a2a44);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 60px;
+            font-weight: bold;
+            color: #FFE5B4;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            box-shadow: 0 4px 0 #0f172a;
+            transition: 0.05s linear;
+            cursor: pointer;
+        }
+        .tiktok-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #0f172a;
+        }
+        .ad-btn {
+            background: linear-gradient(135deg, #FF8C42, #FF5722);
+            color: white;
+            box-shadow: 0 4px 0 #a13d0a;
+        }
+        .reward-badge {
+            background: #ffaa33;
+            color: #2c1a0a;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .info-message {
+            text-align: center;
+            font-size: 10px;
+            color: #bbbbaa;
+            margin-top: 14px;
+            background: #00000055;
+            border-radius: 28px;
+            padding: 8px;
+            cursor: pointer;
+        }
+        .legal-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 12px;
+            font-size: 11px;
+        }
+        .legal-links a {
+            color: #FFD966;
+            text-decoration: none;
+            background: #00000066;
+            padding: 4px 12px;
+            border-radius: 20px;
+            transition: 0.1s;
+        }
+        .legal-links a:active {
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+<div class="game-wrapper">
+    <div class="stats">
+        <div class="stat-item">💎 得分 <span class="stat-value" id="scoreValue">0</span></div>
+        <div class="stat-item">❤️ 生命 <span class="stat-value" id="livesValue">3</span></div>
+        <div class="login-status" id="loginStatusArea">🔑 未登录</div>
+    </div>
+
+    <canvas id="gameCanvas" width="550" height="550"></canvas>
+
+    <div class="task-buttons">
+        <button id="shortcutBtn" class="tiktok-btn">📱 主屏幕快捷方式<br><span class="reward-badge">+100分</span></button>
+        <button id="entranceBtn" class="tiktok-btn">👤 个人资料入口<br><span class="reward-badge">+1❤️</span></button>
+        <button id="rewardAdBtn" class="tiktok-btn ad-btn">🎬 激励广告<br><span class="reward-badge">+50分</span></button>
+    </div>
+    <div class="task-buttons">
+        <button id="restartGameBtn" class="tiktok-btn">🔄 重新开局</button>
+    </div>
+    <div class="info-message" id="gameMessage">
+        ✨ 已集成静默登录 | 完成平台任务获得额外奖励
+    </div>
+    <!-- 服务条款 & 隐私政策 - 已修正为正确域名 -->
+    <div class="legal-links">
+        <a href="https://chunkit0625.github.io/GemKeeper/privacy.html" target="_blank" rel="noopener noreferrer">📜 服务条款</a>
+        <a href="https://chunkit0625.github.io/GemKeeper/terms.html" target="_blank" rel="noopener noreferrer">🔒 隐私政策</a>
+    </div>
+</div>
+
+<script>
+    // ======================== 1. TikTok SDK 适配（真实环境优先）========================
+    const REWARDED_AD_UNIT_ID = "ad7626018032824895506";   // 您提供的奖励性视频广告ID
+    
+    const isRealTikTok = !!(window.tt && window.tt.TTMinis && window.tt.TTMinis.game);
+    
+    if (!isRealTikTok) {
+        // 模拟 SDK（仅用于开发调试，提交审核时自动使用真实环境）
+        window.tt = window.tt || {};
+        window.tt.TTMinis = window.tt.TTMinis || {};
+        window.tt.TTMinis.game = (function() {
+            let mockLoginState = { loggedIn: false };
+            class MockRewardedVideoAd {
+                constructor(adUnitId) { this.adUnitId = adUnitId; this.onLoadCb = null; this.onErrorCb = null; this.onCloseCb = null; this.loaded = false; }
+                onLoad(cb) { this.onLoadCb = cb; }
+                onError(cb) { this.onErrorCb = cb; }
+                onClose(cb) { this.onCloseCb = cb; }
+                load() { setTimeout(() => { this.loaded = true; if (this.onLoadCb) this.onLoadCb(); }, 200); }
+                show() {
+                    if (!this.loaded) { this.load(); setTimeout(() => this.show(), 400); return; }
+                    const modal = document.createElement('div');
+                    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:10001;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);';
+                    const card = document.createElement('div');
+                    card.style.cssText = 'background:#1e2a3a;border-radius:48px;padding:28px;text-align:center;border:2px solid gold;max-width:280px;';
+                    card.innerHTML = `<h2 style="color:#FFD966;">🎬 激励广告</h2><p style="margin:12px 0;color:white;">观看完整广告即可获得奖励</p><div style="background:#FFAA33;border-radius:40px;padding:8px;margin:12px 0;font-weight:bold;">🎁 奖励: +50分</div><button id="mockAdRewardBtn" style="background:#FF8C42;border:none;padding:12px 20px;border-radius:40px;margin-top:8px;font-weight:bold;">✅ 观看完成,领取奖励</button><button id="mockAdCloseBtn" style="background:#555;border:none;padding:8px 16px;border-radius:40px;margin-top:12px;color:white;">❌ 提前关闭(无奖励)</button>`;
+                    modal.appendChild(card);
+                    document.body.appendChild(modal);
+                    document.getElementById('mockAdRewardBtn').onclick = () => { modal.remove(); if (this.onCloseCb) this.onCloseCb({ isEnded: true }); };
+                    document.getElementById('mockAdCloseBtn').onclick = () => { modal.remove(); if (this.onCloseCb) this.onCloseCb({ isEnded: false }); };
+                }
+            }
+            return {
+                login: function(params) {
+                    setTimeout(() => { const mockCode = "mock_auth_" + Date.now(); mockLoginState.loggedIn = true; if (params.success) params.success({ code: mockCode }); if (params.complete) params.complete(); }, 150);
+                },
+                createRewardedVideoAd: function(options) { return new MockRewardedVideoAd(options.adUnitId); },
+                addShortcut: function(params) { setTimeout(() => { if (confirm("📱 是否将游戏添加到主屏幕？(模拟)")) params.success ? params.success() : null; else params.fail ? params.fail({ errMsg: "cancel" }) : null; if (params.complete) params.complete(); }, 50); },
+                getShortcutMissionReward: function(params) { setTimeout(() => { if (params.success) params.success({ canReceiveReward: true }); if (params.complete) params.complete(); }, 100); },
+                startEntranceMission: function(params) { setTimeout(() => { alert("🎮 跳转至个人主页侧边栏 (模拟)"); if (params.success) params.success(); if (params.complete) params.complete(); }, 100); },
+                getEntranceMissionReward: function(params) { setTimeout(() => { if (params.success) params.success({ canReceiveReward: true }); if (params.complete) params.complete(); }, 100); },
+                onShow: function(cb) { window.addEventListener('focus', cb); },
+                onHide: function(cb) { window.addEventListener('blur', cb); },
+                canIUse: function(api) { return ['addShortcut','startEntranceMission','getShortcutMissionReward','getEntranceMissionReward'].includes(api); }
+            };
+        })();
+    }
+
+    const TTGame = window.tt?.TTMinis?.game;
+    
+    // ======================== 2. 游戏核心逻辑 ========================
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let CANVAS_W = 550, CANVAS_H = 550;
+    canvas.width = CANVAS_W; canvas.height = CANVAS_H;
+    let paddleWidth = 90, paddleHeight = 16;
+    let paddleX = (CANVAS_W - paddleWidth) / 2;
+    const paddleY = CANVAS_H - paddleHeight - 20;
+    let gems = [];
+    const GEM_RADIUS = 9;
+    let baseSpeed = 2.8, currentSpeed = baseSpeed;
+    let score = 0, lives = 3, gameActive = true;
+    let frameCounter = 0, spawnRate = 32;
+    let animationId = null;
+    let gamePaused = false;
+
+    const scoreSpan = document.getElementById('scoreValue');
+    const livesSpan = document.getElementById('livesValue');
+    const loginStatusSpan = document.getElementById('loginStatusArea');
+    const messageDiv = document.getElementById('gameMessage');
+
+    function updateUI() { scoreSpan.innerText = score; livesSpan.innerText = lives; }
+    function spawnGem() { let randX = GEM_RADIUS + Math.random() * (CANVAS_W - GEM_RADIUS * 2); gems.push({ x: randX, y: -GEM_RADIUS, r: GEM_RADIUS }); }
+    function updateGems() {
+        for (let i = 0; i < gems.length; i++) {
+            const g = gems[i]; g.y += currentSpeed;
+            if (g.y + g.r >= paddleY && g.y - g.r <= paddleY + paddleHeight && g.x + g.r >= paddleX && g.x - g.r <= paddleX + paddleWidth) {
+                gems.splice(i,1); score += 10; updateUI();
+                let newSpeed = baseSpeed + Math.floor(score / 150) * 0.25; currentSpeed = Math.min(newSpeed, 7.5); i--; continue;
+            }
+            if (g.y + g.r >= CANVAS_H) { gems.splice(i,1); if (gameActive) { lives--; updateUI(); if (lives <= 0) { gameActive = false; lives = 0; updateUI(); messageDiv.innerText = '💀 游戏结束，使用激励广告复活或重新开局'; } } i--; }
+        }
+    }
+    function handleSpawning() { if (!gameActive) return; frameCounter++; let dynamicRate = Math.max(20, spawnRate - Math.floor(score / 250)); if (frameCounter >= dynamicRate) { frameCounter = 0; spawnGem(); if (score > 200 && Math.random() < 0.2) spawnGem(); } }
+    function handleMove(clientX) { if (!gameActive) return; const rect = canvas.getBoundingClientRect(); const scaleX = CANVAS_W / rect.width; let canvasX = (clientX - rect.left) * scaleX; canvasX = Math.min(Math.max(canvasX, paddleWidth/2), CANVAS_W - paddleWidth/2); paddleX = canvasX - paddleWidth/2; paddleX = Math.min(Math.max(paddleX, 0), CANVAS_W - paddleWidth); }
+    canvas.addEventListener('mousemove', (e) => { e.preventDefault(); handleMove(e.clientX); });
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if(e.touches[0]) handleMove(e.touches[0].clientX); }, { passive: false });
+    canvas.addEventListener('touchstart', (e) => e.preventDefault());
+    canvas.addEventListener('mousedown', (e) => e.preventDefault());
+
+    function draw() {
+        ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+        ctx.fillStyle = '#13202e'; ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        for(let g of gems) {
+            ctx.shadowBlur = 10; ctx.shadowColor = '#ffcc88';
+            ctx.beginPath(); ctx.arc(g.x, g.y, g.r-1, 0, Math.PI*2); ctx.fillStyle = '#62c46b'; ctx.fill();
+            ctx.beginPath(); ctx.arc(g.x, g.y, g.r-2, 0, Math.PI*2); ctx.fillStyle = '#9fdf9f'; ctx.fill();
+            ctx.fillStyle = '#FFD966'; ctx.font = "bold 14px 'Segoe UI'"; ctx.fillText("💎", g.x-7, g.y+5);
+            ctx.shadowBlur = 0;
+        }
+        ctx.fillStyle = '#FFB347'; ctx.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
+        ctx.fillStyle = '#FFE484'; ctx.fillRect(paddleX+4, paddleY-4, paddleWidth-8, 6);
+        if (!gameActive) { ctx.font = 'bold 26px system-ui'; ctx.fillStyle = '#FFB347'; ctx.fillText('GAME OVER', CANVAS_W/2-100, CANVAS_H/2-40); ctx.font = '14px monospace'; ctx.fillStyle = '#eee'; ctx.fillText('点击「重新开局」继续', CANVAS_W/2-110, CANVAS_H/2+20); }
+    }
+
+    function gameLoop() {
+        if (!gamePaused && gameActive) { handleSpawning(); updateGems(); }
+        draw();
+        animationId = requestAnimationFrame(gameLoop);
+    }
+
+    function fullGameReset() { gems = []; score = 0; lives = 3; currentSpeed = baseSpeed; gameActive = true; frameCounter = 0; paddleX = (CANVAS_W - paddleWidth) / 2; updateUI(); messageDiv.innerText = '✨ 游戏已重置，继续收集宝石吧！'; setTimeout(() => { if(messageDiv.innerText.includes('重置')) messageDiv.innerText = '✨ 完成平台任务获得额外奖励'; }, 2000); }
+    function addBonusPoints(points) { if (gameActive) { score += points; updateUI(); let newSpeed = baseSpeed + Math.floor(score / 150) * 0.25; currentSpeed = Math.min(newSpeed, 7.5); messageDiv.innerText = `🎁 获得 +${points} 分！`; setTimeout(() => messageDiv.innerText = '✨ 完成平台任务获得额外奖励', 1800); } else { messageDiv.innerText = '游戏已结束，无法加分，请先复活或重开'; } }
+    function reviveByAd() { if (!gameActive && lives <= 0) { lives = 3; gameActive = true; updateUI(); messageDiv.innerText = '❤️ 复活成功！继续战斗吧'; setTimeout(() => messageDiv.innerText = '✨ 完成平台任务获得额外奖励', 2500); } else if (gameActive && lives < 3) { lives = Math.min(lives + 1, 3); updateUI(); messageDiv.innerText = '❤️ 额外获得一条命！'; } else { messageDiv.innerText = '当前生命充足，无法使用复活'; } }
+
+    // ======================== 3. TikTok 必需功能集成 ========================
+    function performSilentLogin() {
+        if (!TTGame) { loginStatusSpan.innerHTML = '⚠️ SDK不可用'; return; }
+        TTGame.login({
+            success: (res) => {
+                const code = res.code;
+                loginStatusSpan.innerHTML = `✅ 已登录 | 正在验证...`;
+                // 正式环境中需将 code 发送至后端换取 open_id 和 access_token
+                setTimeout(() => { loginStatusSpan.innerHTML = `✅ 登录成功`; }, 500);
+                messageDiv.innerText = '🔐 静默登录成功';
+                setTimeout(() => { if(messageDiv.innerText.includes('登录成功')) messageDiv.innerText = '✨ 完成平台任务获得额外奖励'; }, 2000);
+            },
+            fail: (err) => { console.error(err); loginStatusSpan.innerHTML = '⚠️ 登录失败，使用演示模式'; }
+        });
+    }
+
+    function showRewardedAdForPoints() {
+        if (!TTGame) { addBonusPoints(50); return; }
+        const rewardedAd = TTGame.createRewardedVideoAd({ adUnitId: REWARDED_AD_UNIT_ID });
+        rewardedAd.onLoad(() => { rewardedAd.show().catch(e => console.warn(e)); });
+        rewardedAd.onError((err) => { console.error(err); alert("广告加载失败，请稍后重试"); });
+        rewardedAd.onClose((res) => { if (res && res.isEnded) addBonusPoints(50); else messageDiv.innerText = '广告未完整观看，无法获得奖励'; });
+        rewardedAd.load();
+    }
+
+    function showRewardedAdForRevive() {
+        if (!gameActive && lives <= 0) {
+            if (!TTGame) { reviveByAd(); return; }
+            const reviveAd = TTGame.createRewardedVideoAd({ adUnitId: REWARDED_AD_UNIT_ID });
+            reviveAd.onLoad(() => reviveAd.show());
+            reviveAd.onError(() => alert("广告加载失败，稍后再试"));
+            reviveAd.onClose((res) => { if (res && res.isEnded) reviveByAd(); else messageDiv.innerText = '未观看完整广告，无法复活'; });
+            reviveAd.load();
+        } else if (gameActive) { messageDiv.innerText = '游戏尚未结束，可用加分广告'; } 
+        else { messageDiv.innerText = '无法复活，请重新开局'; }
+    }
+
+    function handleAddShortcutMission() {
+        if (!TTGame) { addBonusPoints(100); return; }
+        if (TTGame.canIUse("addShortcut")) {
+            TTGame.addShortcut({
+                success: () => {
+                    TTGame.getShortcutMissionReward({
+                        success: ({ canReceiveReward }) => {
+                            if (canReceiveReward) { addBonusPoints(100); messageDiv.innerText = '🎉 主屏幕快捷方式任务完成，获得 +100 分！'; }
+                            else messageDiv.innerText = '快捷方式已添加，但暂时不符合领奖条件';
+                        },
+                        fail: () => messageDiv.innerText = '获取任务奖励失败'
+                    });
+                },
+                fail: () => messageDiv.innerText = '添加快捷方式失败或用户取消'
+            });
+        } else { messageDiv.innerText = '当前版本不支持 addShortcut'; }
+    }
+
+    let entranceMissionTriggered = false;
+    function handleEntranceMission() {
+        if (!TTGame) { if(gameActive) { lives = Math.min(lives+1,5); updateUI(); messageDiv.innerText = '入口任务奖励: +1生命'; } return; }
+        if (TTGame.canIUse("startEntranceMission")) {
+            TTGame.startEntranceMission({
+                success: () => {
+                    entranceMissionTriggered = true;
+                    messageDiv.innerText = '已跳转至个人资料页，返回游戏后可领取奖励';
+                },
+                fail: () => messageDiv.innerText = '跳转侧边栏失败'
+            });
+        } else { messageDiv.innerText = '当前版本不支持 startEntranceMission'; }
+    }
+
+    function checkEntranceMissionReward() {
+        if (!entranceMissionTriggered) return;
+        if (!TTGame) return;
+        TTGame.getEntranceMissionReward({
+            success: ({ canReceiveReward }) => {
+                if (canReceiveReward && gameActive) {
+                    lives = Math.min(lives + 1, 5);
+                    updateUI();
+                    messageDiv.innerText = '👤 个人资料入口任务奖励: +1生命！';
+                    entranceMissionTriggered = false;
+                } else if (!gameActive) {
+                    messageDiv.innerText = '游戏已结束，请重启后再从个人资料入口返回领取奖励';
+                }
+            },
+            fail: () => {}
+        });
+    }
+
+    // ======================== 4. 生命周期管理 ========================
+    if (TTGame && typeof TTGame.onShow === 'function') {
+        TTGame.onShow(() => {
+            gamePaused = false;
+            checkEntranceMissionReward();
+        });
+        TTGame.onHide(() => { gamePaused = true; });
+    } else {
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) gamePaused = true;
+            else { gamePaused = false; checkEntranceMissionReward(); }
+        });
+    }
+
+    // ======================== 5. 事件绑定与启动 ========================
+    document.getElementById('shortcutBtn').addEventListener('click', handleAddShortcutMission);
+    document.getElementById('entranceBtn').addEventListener('click', handleEntranceMission);
+    document.getElementById('rewardAdBtn').addEventListener('click', showRewardedAdForPoints);
+    document.getElementById('restartGameBtn').addEventListener('click', () => fullGameReset());
+    messageDiv.addEventListener('click', () => {
+        if (!gameActive && lives === 0) showRewardedAdForRevive();
+        else if(gameActive) messageDiv.innerText = '游戏中可点击「激励广告」按钮加分';
+        else messageDiv.innerText = '请使用「重新开局」按钮';
+        setTimeout(() => { if(messageDiv.innerText.includes('游戏')) messageDiv.innerText = '✨ 完成平台任务获得额外奖励'; }, 1500);
+    });
+
+    fullGameReset();
+    performSilentLogin();
+    function startLoop() { if (animationId) cancelAnimationFrame(animationId); animationId = requestAnimationFrame(gameLoop); }
+    startLoop();
+</script>
+</body>
+</html>
