@@ -2,89 +2,128 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-	<title>Global Ball Blast</title>
-	
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
-	<link rel="apple-touch-icon" sizes="256x256" href="icon-256.png" />
-	<meta name="HandheldFriendly" content="true" />
-	<meta name="mobile-web-app-capable" content="yes" />
-	<link rel="shortcut icon" sizes="256x256" href="icon-256.png" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>GemKeeper</title> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <link rel="apple-touch-icon" sizes="256x256" href="icon-256.png" />
+    <meta name="HandheldFriendly" content="true" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="shortcut icon" sizes="256x256" href="icon-256.png" />
 
-	<style type="text/css">
-		* { padding: 0; margin: 0; }
-		html, body { background: #000; color: #fff; overflow: hidden; touch-action: none; -ms-touch-action: none; }
-		canvas { touch-action-delay: none; touch-action: none; -ms-touch-action: none; }
-        /* 隐私政策链接样式 */
-        .legal-links {
+    <style type="text/css">
+        * { padding: 0; margin: 0; }
+        html, body { background: #000; color: #fff; overflow: hidden; touch-action: none; -ms-touch-action: none; }
+        canvas { touch-action-delay: none; touch-action: none; -ms-touch-action: none; }
+        
+        /* 顶部功能条 - 手动触发入口 */
+        #nav-header {
             position: absolute;
-            bottom: 10px;
+            top: 0;
+            left: 0;
             width: 100%;
-            text-align: center;
-            font-size: 10px;
-            color: rgba(255,255,255,0.5);
-            z-index: 100;
-            pointer-events: auto;
+            height: 44px;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            z-index: 10000;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
         }
-        .legal-links a { color: rgba(255,255,255,0.5); text-decoration: none; margin: 0 10px; }
+        #nav-header a { 
+            color: #fff; 
+            text-decoration: none; 
+            padding: 6px 12px; 
+            border-radius: 4px; 
+            background: rgba(255,255,255,0.15); 
+        }
+        /* 突出显示快捷方式按钮 */
+        #add-desktop-btn { 
+            color: #ff0050 !important; 
+            font-weight: bold; 
+            border: 1px solid #ff0050; 
+        }
     </style>
-	
-	<script src="https://lf16-pangle.pangle.io/obj/pangle-sdk-static/tt_ads_sdk.js"></script>
-	<script>
-		const TT_CONFIG = {
-			appId: '8088033', 
-			rewardId: '1814660991950882'
-		};
 
-		// 广告触发函数
-		window.showTikTokAd = function() {
-			if (typeof tt !== 'undefined' && tt.createRewardedVideoAd) {
-				const videoAd = tt.createRewardedVideoAd({ adUnitId: TT_CONFIG.rewardId });
-				videoAd.show().catch(() => { onAdFinished(); });
-				videoAd.onClose(res => { if (res && res.isEnded) { onAdFinished(); } });
-			} else {
-				onAdFinished();
-			}
-		};
+    <script src="https://lf16-pangle.pangle.io/obj/pangle-sdk-static/tt_ads_sdk.js"></script>
+    <script>
+        const TT_CONFIG = {
+            appId: '8088033', 
+            rewardId: '1814660991950882'
+        };
 
-		function onAdFinished() { console.log("Ad logic trigger"); }
-	</script>
+        // 1. 初始化 SDK
+        if (typeof tt !== 'undefined') {
+            tt.config({ appId: TT_CONFIG.appId });
+        }
+
+        // 2. 广告触发逻辑
+        window.showTikTokAd = function() {
+            if (typeof tt !== 'undefined' && tt.createRewardedVideoAd) {
+                const videoAd = tt.createRewardedVideoAd({ adUnitId: TT_CONFIG.rewardId });
+                videoAd.show().catch(err => { 
+                    console.log("Ad show failed", err); 
+                    onAdFinished(); 
+                });
+                videoAd.onClose(res => { if (res && res.isEnded) onAdFinished(); });
+            } else {
+                onAdFinished();
+            }
+        };
+
+        // 3. 手动快捷方式接口
+        window.addGameShortcut = function() {
+            if (typeof tt !== 'undefined' && tt.addShortcut) {
+                tt.addShortcut({
+                    success: () => console.log("Shortcut request success"),
+                    fail: (err) => console.log("Shortcut request fail", err)
+                });
+            } else {
+                console.log("Not in TikTok environment");
+            }
+        };
+
+        function onAdFinished() { console.log("Reward process done."); }
+    </script>
 </head> 
  
 <body> 
-	<div id="fb-root"></div>
-	<div id="c2canvasdiv">
-		<canvas id="c2canvas" width="720" height="1280"></canvas>
-	</div>
-
-    <div class="legal-links">
-        <a href="https://chunkit0625.github.io/GemKeeper/privacy.html" target="_blank">Privacy Policy</a> | 
-        <a href="https://chunkit0625.github.io/GemKeeper/terms.html" target="_blank">Terms of Service</a>
+    <div id="nav-header">
+        <a id="add-desktop-btn" href="javascript:void(0);" onclick="window.addGameShortcut()">收藏游戏</a>
+        <a href="https://chunkit0625.github.io/GemKeeper/privacy.html" target="_blank">隐私政策</a>
+        <a href="https://chunkit0625.github.io/GemKeeper/terms.html" target="_blank">条款</a>
     </div>
-	
-	<script src="jquery-2.0.0.min.js"></script>
-	<script src="c2runtime.js"></script>
 
-    <script>
-		jQuery(window).resize(function() {
-			cr_sizeCanvas(jQuery(window).width(), jQuery(window).height());
-		});
-		
-		jQuery(document).ready(function () {			
-			if (typeof cr_createRuntime !== "undefined") {
-				cr_createRuntime("c2canvas");
-			}
-		});
-		
-		function onVisibilityChanged() {
-			if (document.hidden || document.mozHidden || document.webkitHidden || document.msHidden)
-				cr_setSuspended(true);
-			else
-				cr_setSuspended(false);
-		};
-		document.addEventListener("visibilitychange", onVisibilityChanged, false);
+    <div id="c2canvasdiv">
+        <canvas id="c2canvas" width="720" height="1280"></canvas>
+    </div>
+    
+    <script src="jquery-2.0.0.min.js"></script>
+    <script src="c2runtime.js"></script> <script>
+        jQuery(window).resize(function() {
+            cr_sizeCanvas(jQuery(window).width(), jQuery(window).height());
+        });
+        
+        jQuery(document).ready(function () {            
+            if (typeof cr_createRuntime !== "undefined") {
+                cr_createRuntime("c2canvas");
+
+                // --- 主页自动触发 ---
+                // 游戏加载后 2 秒，自动尝试弹出“添加桌面”提示
+                setTimeout(function() {
+                    window.addGameShortcut();
+                }, 2000);
+            }
+        });
+        
+        function onVisibilityChanged() {
+            if (document.hidden || document.mozHidden || document.webkitHidden || document.msHidden)
+                cr_setSuspended(true);
+            else
+                cr_setSuspended(false);
+        };
+        document.addEventListener("visibilitychange", onVisibilityChanged, false);
     </script>
 </body> 
 </html>
