@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<title>Global Ball Blast</title>
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<link rel="apple-touch-icon" sizes="256x256" href="icon-256.png" />
+	<meta name="HandheldFriendly" content="true" />
+	<meta name="mobile-web-app-capable" content="yes" />
+	<link rel="shortcut icon" sizes="256x256" href="icon-256.png" />
+
+	<style type="text/css">
+		* { padding: 0; margin: 0; }
+		html, body { background: #000; color: #fff; overflow: hidden; touch-action: none; -ms-touch-action: none; }
+		canvas { touch-action-delay: none; touch-action: none; -ms-touch-action: none; }
+        /* 隐私政策链接样式 */
+        .legal-links {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            z-index: 100;
+            pointer-events: auto;
+        }
+        .legal-links a { color: rgba(255,255,255,0.5); text-decoration: none; margin: 0 10px; }
+    </style>
+	
+	<script src="https://lf16-pangle.pangle.io/obj/pangle-sdk-static/tt_ads_sdk.js"></script>
+	<script>
+		const TT_CONFIG = {
+			appId: '8088033', 
+			rewardId: '1814660991950882'
+		};
+
+		// 广告触发函数
+		window.showTikTokAd = function() {
+			if (typeof tt !== 'undefined' && tt.createRewardedVideoAd) {
+				const videoAd = tt.createRewardedVideoAd({ adUnitId: TT_CONFIG.rewardId });
+				videoAd.show().catch(() => { onAdFinished(); });
+				videoAd.onClose(res => { if (res && res.isEnded) { onAdFinished(); } });
+			} else {
+				onAdFinished();
+			}
+		};
+
+		function onAdFinished() { console.log("Ad logic trigger"); }
+	</script>
+</head> 
+ 
+<body> 
+	<div id="fb-root"></div>
+	<div id="c2canvasdiv">
+		<canvas id="c2canvas" width="720" height="1280"></canvas>
+	</div>
+
+    <div class="legal-links">
+        <a href="https://chunkit0625.github.io/GemKeeper/privacy.html" target="_blank">Privacy Policy</a> | 
+        <a href="https://chunkit0625.github.io/GemKeeper/terms.html" target="_blank">Terms of Service</a>
+    </div>
+	
+	<script src="jquery-2.0.0.min.js"></script>
+	<script src="c2runtime.js"></script>
+
+    <script>
+		jQuery(window).resize(function() {
+			cr_sizeCanvas(jQuery(window).width(), jQuery(window).height());
+		});
+		
+		jQuery(document).ready(function () {			
+			if (typeof cr_createRuntime !== "undefined") {
+				cr_createRuntime("c2canvas");
+			}
+		});
+		
+		function onVisibilityChanged() {
+			if (document.hidden || document.mozHidden || document.webkitHidden || document.msHidden)
+				cr_setSuspended(true);
+			else
+				cr_setSuspended(false);
+		};
+		document.addEventListener("visibilitychange", onVisibilityChanged, false);
+    </script>
+</body> 
+</html>
